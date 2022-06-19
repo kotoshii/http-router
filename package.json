@@ -1,0 +1,15 @@
+{
+  "name": "routing-library",
+  "version": "0.1.0",
+  "description": "simple decorator-based routing library, created on top of http module",
+  "main": "dist/index.js",
+  "repository": "https://github.com/kotoshii/routing-library",
+  "author": "kotoshii",
+  "license": "GPL-3.0",
+  "private": true,
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "nodemon": "^2.0.16",
+    "typescript": "^4.7.4"
+  }
+}
