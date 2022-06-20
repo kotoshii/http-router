@@ -4,12 +4,21 @@
   "description": "simple decorator-based routing library, created on top of http module",
   "main": "dist/index.js",
   "repository": "https://github.com/kotoshii/routing-library",
-  "author": "kotoshii",
+  "author": "kotoshi",
   "license": "GPL-3.0",
   "private": true,
+  "scripts": {
+    "build": "tsc"
+  },
   "devDependencies": {
     "@types/node": "^18.0.0",
-    "nodemon": "^2.0.16",
+    "@typescript-eslint/eslint-plugin": "^5.28.0",
+    "@typescript-eslint/parser": "^5.28.0",
+    "eslint": "^8.0.1",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-n": "^15.0.0",
+    "eslint-plugin-promise": "^6.0.0",
     "typescript": "^4.7.4"
   }
 }
