@@ -25,7 +25,13 @@ export class Router implements IRouter {
       return null
     }
 
-    const { target, methodName } = routeMetadata[formatRoute(route)]
+    const handlerMetadata = routeMetadata[formatRoute(route)]
+
+    if (!handlerMetadata) {
+      return null
+    }
+
+    const { target, methodName } = handlerMetadata
     const controllerInstance = Container.get<ControllerInstance>(target)
 
     return this.createHandler(controllerInstance, methodName)

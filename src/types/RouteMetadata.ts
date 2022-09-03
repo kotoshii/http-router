@@ -1,1 +1,3 @@
-export type RouteMetadata = Record<string, { target: Function, methodName: string }>
+import { HandlerMetadata } from './HandlerMetadata'
+
+export type RouteMetadata = Record<string, HandlerMetadata>
