@@ -1,15 +1,19 @@
 import { Controller, Get, createServer } from '../src'
+import { Request } from '../src/types/Request'
+import { Response } from '../src/types/Response'
 
 @Controller()
 // eslint-disable-next-line no-unused-vars
 class TestController {
   @Get('/')
-  async home() {
+  async home(req: Request, res: Response) {
+    console.log(req.query)
     return 'homepage'
   }
 
   @Get('/info')
-  async getInfo() {
+  async getInfo(req: Request, res: Response) {
+    console.log(req.query)
     return 'some info lololo'
   }
 }

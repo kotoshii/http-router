@@ -6,9 +6,10 @@ import { MetadataStorage } from '../../metadata/MetadataStorage/MetadataStorage'
 import { Controller } from '../Controller/Controller'
 import { flatten, groupBy } from 'lodash'
 import { RequestHandler } from '../../types/RequestHandler'
-import { IncomingMessage, ServerResponse } from 'http'
 import { ControllerInstance } from '../../types/ControllerInstance'
 import { formatRoute } from '../../utils/formatRoute'
+import { Request } from '../../types/Request'
+import { Response } from '../../types/Response'
 
 @Service()
 export class Router implements IRouter {
@@ -59,10 +60,10 @@ export class Router implements IRouter {
   }
 
   private createHandler(controllerInstance: ControllerInstance, methodName: string): RequestHandler {
-    return function(req: IncomingMessage, res: ServerResponse) {
+    return function(req: Request, res: Response) {
       // eslint-disable-next-line no-useless-call
       return controllerInstance[methodName]
-        .call<ControllerInstance, [IncomingMessage, ServerResponse], unknown | Promise<unknown>>(
+        .call<ControllerInstance, [Request, Response], unknown | Promise<unknown>>(
           controllerInstance, req, res
         )
     }
