@@ -17,7 +17,7 @@ export class Server implements IServer {
   }
 
   private addListeners() {
-    this._server.on('request', (req: IncomingMessage, res: ServerResponse) => {
+    this._server.on('request', async (req: IncomingMessage, res: ServerResponse) => {
       const handler = this._router.getHandler(req.url as string, req.method as HttpMethod)
 
       if (!handler) {
@@ -28,9 +28,8 @@ export class Server implements IServer {
         }))
       }
 
-      res.statusCode = 200
-
-      return res.end(handler(req, res))
+      const result = await Promise.resolve(handler(req, res))
+      return res.end(result)
     })
   }
 

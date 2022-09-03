@@ -56,7 +56,9 @@ export class Router implements IRouter {
     return function(req: IncomingMessage, res: ServerResponse) {
       // eslint-disable-next-line no-useless-call
       return controllerInstance[methodName]
-        .call<ControllerInstance, [IncomingMessage, ServerResponse], unknown>(controllerInstance, req, res)
+        .call<ControllerInstance, [IncomingMessage, ServerResponse], unknown | Promise<unknown>>(
+          controllerInstance, req, res
+        )
     }
   }
 }

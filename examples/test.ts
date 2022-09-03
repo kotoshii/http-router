@@ -4,12 +4,12 @@ import { Controller, Get, createServer } from '../src'
 // eslint-disable-next-line no-unused-vars
 class TestController {
   @Get('/')
-  home() {
+  async home() {
     return 'homepage'
   }
 
   @Get('/info')
-  getInfo() {
+  async getInfo() {
     return 'some info lololo'
   }
 }
