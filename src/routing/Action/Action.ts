@@ -4,6 +4,7 @@ import { IActionMetadata } from '../../metadata/IActionMetadata'
 import { HttpMethod } from '../../types/HttpMethod'
 import path from 'path/posix'
 import { formatRoute } from '../../utils/formatRoute'
+import { match, MatchFunction } from 'path-to-regexp'
 
 export class Action implements IAction {
   controller: IController
@@ -18,6 +19,8 @@ export class Action implements IAction {
 
   fullRoute: string
 
+  private readonly matchRouteFn: MatchFunction
+
   constructor(controller: IController, { target, httpMethod, methodName, route }: IActionMetadata) {
     this.controller = controller
     this.target = target.constructor
@@ -25,6 +28,11 @@ export class Action implements IAction {
     this.methodName = methodName
     this.route = route
     this.fullRoute = this.buildRoute()
+    this.matchRouteFn = match(this.fullRoute)
+  }
+
+  public matchRoute(path: string) {
+    return this.matchRouteFn(path)
   }
 
   private buildRoute() {

@@ -5,9 +5,9 @@ import { Response } from '../src/types/Response'
 @Controller()
 // eslint-disable-next-line no-unused-vars
 class TestController {
-  @Get('/')
+  @Get('/stores/:storeId/users/:userId')
   async home(req: Request, res: Response) {
-    console.log(req.query)
+    console.log(req.params)
     return 'homepage'
   }
 

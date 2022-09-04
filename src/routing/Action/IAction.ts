@@ -1,5 +1,6 @@
 import { IController } from '../Controller/IController'
 import { IActionMetadata } from '../../metadata/IActionMetadata'
+import { Match } from 'path-to-regexp'
 
 export interface IAction extends IActionMetadata {
   controller: IController;
@@ -7,4 +8,6 @@ export interface IAction extends IActionMetadata {
   target: Function
 
   fullRoute: string
+
+  matchRoute(path: string): Match
 }

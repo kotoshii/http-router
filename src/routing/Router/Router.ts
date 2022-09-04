@@ -1,7 +1,6 @@
 import { IRouter } from './IRouter'
 import { Container, Service } from 'typedi'
 import { HttpMethod } from '../../types/HttpMethod'
-import { RouteMetadata } from '../../types/RouteMetadata'
 import { MetadataStorage } from '../../metadata/MetadataStorage/MetadataStorage'
 import { Controller } from '../Controller/Controller'
 import { flatten, groupBy } from 'lodash'
@@ -10,32 +9,43 @@ import { ControllerInstance } from '../../types/ControllerInstance'
 import { formatRoute } from '../../utils/formatRoute'
 import { Request } from '../../types/Request'
 import { Response } from '../../types/Response'
+import { IAction } from '../Action/IAction'
 
 @Service()
 export class Router implements IRouter {
-  private readonly _routes = new Map<HttpMethod, RouteMetadata>()
+  private _actionsMap = new Map<HttpMethod, IAction[]>()
 
   constructor(
     private readonly _metadataStorage: MetadataStorage
   ) {}
 
   getHandler(route: string, method: HttpMethod): RequestHandler | null {
-    const routeMetadata = this._routes.get(method as HttpMethod)
+    const actions = this._actionsMap.get(method as HttpMethod)
 
-    if (!routeMetadata) {
+    if (!actions) {
       return null
     }
 
-    const handlerMetadata = routeMetadata[formatRoute(route)]
+    let action: IAction | null = null
+    let params: Record<string, string> = {}
 
-    if (!handlerMetadata) {
+    for (const a of actions) {
+      const result = a.matchRoute(formatRoute(route))
+      if (result) {
+        action = a
+        params = result.params as Record<string, string>
+        break
+      }
+    }
+
+    if (!action) {
       return null
     }
 
-    const { target, methodName } = handlerMetadata
+    const { target, methodName } = action
     const controllerInstance = Container.get<ControllerInstance>(target)
 
-    return this.createHandler(controllerInstance, methodName)
+    return this.createHandler(controllerInstance, methodName, params)
   }
 
   mapRoutes() {
@@ -46,21 +56,15 @@ export class Router implements IRouter {
     const actionsByHttpMethod = groupBy(flatten(controllers.map((controller) => controller.actions)), 'httpMethod')
 
     for (const httpMethod in actionsByHttpMethod) {
-      const routeMetadata: RouteMetadata = {}
-
-      for (const action of actionsByHttpMethod[httpMethod]) {
-        routeMetadata[action.fullRoute] = {
-          target: action.target,
-          methodName: action.methodName
-        }
-      }
-
-      this._routes.set(httpMethod as HttpMethod, routeMetadata)
+      this._actionsMap.set(httpMethod as HttpMethod, actionsByHttpMethod[httpMethod])
     }
   }
 
-  private createHandler(controllerInstance: ControllerInstance, methodName: string): RequestHandler {
+  private createHandler(
+    controllerInstance: ControllerInstance, methodName: string, params: Record<string, string>
+  ): RequestHandler {
     return function(req: Request, res: Response) {
+      req.params = Object.assign({}, params)
       // eslint-disable-next-line no-useless-call
       return controllerInstance[methodName]
         .call<ControllerInstance, [Request, Response], unknown | Promise<unknown>>(
