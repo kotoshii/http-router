@@ -7,6 +7,7 @@ import { HttpMethod } from '../../types/HttpMethod'
 import qs from 'qs'
 import { Request } from '../../types/Request'
 import { Response } from '../../types/Response'
+import { MiddlewareFunction } from '../../types/MiddlewareFunction'
 
 export class Server implements IServer {
   private readonly _server: NodeServer
@@ -48,5 +49,10 @@ export class Server implements IServer {
 
   public listen(port: number | string, callback?: CallbackVoid) {
     this._server.listen(port, callback)
+    return this
+  }
+
+  public useMiddleware(...middlewares: MiddlewareFunction[]): IServer {
+    return this
   }
 }
