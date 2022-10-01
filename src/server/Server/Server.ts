@@ -8,10 +8,12 @@ import qs from 'qs'
 import { Request } from '../../types/Request'
 import { Response } from '../../types/Response'
 import { MiddlewareFunction } from '../../types/MiddlewareFunction'
+import { MetadataStorage } from '../../metadata/MetadataStorage/MetadataStorage'
 
 export class Server implements IServer {
   private readonly _server: NodeServer
   private readonly _router: Router = Container.get(Router)
+  private readonly _metadataStorage: MetadataStorage = Container.get(MetadataStorage)
 
   constructor() {
     this._server = createServer()
@@ -38,8 +40,20 @@ export class Server implements IServer {
 
       req.query = this.parseQueryParams(url.search)
 
-      const result = await Promise.resolve(handler(req, res))
-      return res.end(result)
+      try {
+        const [result, allMiddlewaresRun] = handler(req, res)
+
+        if (allMiddlewaresRun) {
+          const awaitedResult = await result
+          return res.end(typeof awaitedResult === 'string' ? awaitedResult : JSON.stringify(awaitedResult))
+        }
+      } catch (error) {
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        return res.end(JSON.stringify({
+          status: 500,
+          message: (error as Error).message
+        }))
+      }
     })
   }
 
@@ -53,6 +67,7 @@ export class Server implements IServer {
   }
 
   public useMiddleware(...middlewares: MiddlewareFunction[]): IServer {
+    this._metadataStorage.addMiddlewaresMetadata(null, null, middlewares)
     return this
   }
 }

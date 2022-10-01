@@ -10,6 +10,7 @@ import { formatRoute } from '../../utils/formatRoute'
 import { Request } from '../../types/Request'
 import { Response } from '../../types/Response'
 import { IAction } from '../Action/IAction'
+import { MiddlewareFunction } from '../../types/MiddlewareFunction'
 
 @Service()
 export class Router implements IRouter {
@@ -45,7 +46,13 @@ export class Router implements IRouter {
     const { target, methodName } = action
     const controllerInstance = Container.get<ControllerInstance>(target)
 
-    return this.createHandler(controllerInstance, methodName, params)
+    const globalMiddlewares = this._metadataStorage.getGlobalMiddlewaresMetadata().map(
+      ({ middlewareFunc }) => middlewareFunc
+    )
+
+    const handlerMiddlewares = [...globalMiddlewares, ...action.controller.middlewares, ...action.middlewares]
+
+    return this.createHandler(controllerInstance, methodName, params, handlerMiddlewares)
   }
 
   mapRoutes() {
@@ -61,15 +68,29 @@ export class Router implements IRouter {
   }
 
   private createHandler(
-    controllerInstance: ControllerInstance, methodName: string, params: Record<string, string>
+    controllerInstance: ControllerInstance,
+    methodName: string,
+    params: Record<string, string>,
+    middlewares: MiddlewareFunction[]
   ): RequestHandler {
     return function(req: Request, res: Response) {
       req.params = Object.assign({}, params)
-      // eslint-disable-next-line no-useless-call
-      return controllerInstance[methodName]
-        .call<ControllerInstance, [Request, Response], unknown | Promise<unknown>>(
-          controllerInstance, req, res
-        )
+
+      let index = 0
+
+      const next = () => {
+        const middleware = middlewares[index++]
+
+        if (!middleware) return
+        middleware(req, res, next)
+      }
+
+      next()
+
+      return [
+        controllerInstance[methodName](req, res),
+        index - 1 === middlewares.length
+      ]
     }
   }
 }

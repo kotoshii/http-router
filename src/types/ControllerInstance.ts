@@ -1,5 +1,6 @@
-import { RequestHandler } from './RequestHandler'
+import { Request } from './Request'
+import { Response } from './Response'
 
 export type ControllerInstance = {
-  [key:string]: RequestHandler
+  [key:string]: (req: Request, res: Response) => unknown
 }

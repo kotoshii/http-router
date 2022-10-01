@@ -1,22 +1,41 @@
+/* eslint-disable no-unused-vars */
 import { Controller, Get, createServer } from '../src'
-import { Request } from '../src/types/Request'
-import { Response } from '../src/types/Response'
 
-@Controller()
-// eslint-disable-next-line no-unused-vars
+@Controller('/', [
+  (req, res, next) => {
+    console.log('controller middleware 1')
+    next()
+  }
+])
 class TestController {
-  @Get('/stores/:storeId/users/:userId')
-  async home(req: Request, res: Response) {
-    console.log(req.params)
-    return 'homepage'
+  @Get('/error')
+  async home() {
+    throw new Error('some error')
   }
 
-  @Get('/info')
-  async getInfo(req: Request, res: Response) {
-    console.log(req.query)
+  @Get('/info', [
+    async (req, res, next) => {
+      console.log('route middleware 1')
+      next()
+    },
+    (req, res, next) => {
+      console.log('route middleware 2')
+      next()
+    }
+  ])
+  async getInfo() {
     return 'some info lololo'
   }
 }
 
 const server = createServer()
-server.listen(8000, () => console.log('started'))
+server.useMiddleware(
+  async (req, res, next) => {
+    console.log('global middleware 1')
+    next()
+  },
+  async (req, res, next) => {
+    console.log('global middleware 2')
+    next()
+  }
+).listen(8000, () => console.log('started'))

@@ -4,6 +4,7 @@ import { MetadataStorage } from '../../metadata/MetadataStorage/MetadataStorage'
 import { Container } from 'typedi'
 import { IAction } from '../Action/IAction'
 import { Action } from '../Action/Action'
+import { MiddlewareFunction } from '../../types/MiddlewareFunction'
 
 export class Controller implements IController {
   private readonly _metadataStorage: MetadataStorage = Container.get(MetadataStorage)
@@ -14,11 +15,17 @@ export class Controller implements IController {
 
   basePath: string
 
+  middlewares: MiddlewareFunction[]
+
   constructor(
     controllerMetadata: IControllerMetadata
   ) {
     this.target = controllerMetadata.target
     this.basePath = controllerMetadata.basePath
+    this.middlewares = this._metadataStorage.getControllerMiddlewaresMetadata(controllerMetadata).map(
+      ({ middlewareFunc }) => middlewareFunc
+    )
+
     this.actions = this._metadataStorage.getControllerActionsMetadata(controllerMetadata).map(
       (actionMetadata) => new Action(this, actionMetadata)
     )

@@ -5,8 +5,15 @@ import { HttpMethod } from '../../types/HttpMethod'
 import path from 'path/posix'
 import { formatRoute } from '../../utils/formatRoute'
 import { match, MatchFunction } from 'path-to-regexp'
+import { MetadataStorage } from '../../metadata/MetadataStorage/MetadataStorage'
+import { Container } from 'typedi'
+import { MiddlewareFunction } from '../../types/MiddlewareFunction'
 
 export class Action implements IAction {
+  private readonly matchRouteFn: MatchFunction
+
+  private readonly _metadataStorage: MetadataStorage = Container.get(MetadataStorage)
+
   controller: IController
 
   target: Function
@@ -19,9 +26,11 @@ export class Action implements IAction {
 
   fullRoute: string
 
-  private readonly matchRouteFn: MatchFunction
+  middlewares: MiddlewareFunction[]
 
-  constructor(controller: IController, { target, httpMethod, methodName, route }: IActionMetadata) {
+  constructor(controller: IController, actionMetadata: IActionMetadata) {
+    const { target, httpMethod, methodName, route } = actionMetadata
+
     this.controller = controller
     this.target = target.constructor
     this.httpMethod = httpMethod
@@ -29,6 +38,9 @@ export class Action implements IAction {
     this.route = route
     this.fullRoute = this.buildRoute()
     this.matchRouteFn = match(this.fullRoute)
+    this.middlewares = this._metadataStorage.getActionMiddlewaresMetadata(actionMetadata).map(
+      ({ middlewareFunc }) => middlewareFunc
+    )
   }
 
   public matchRoute(path: string) {
