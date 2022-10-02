@@ -6,4 +6,5 @@ export interface Request extends IncomingMessage {
   params: Record<string, string>
   body: string | number | null | Record<string, unknown>
   rawBody: string
+  cookies: Record<string, string>
 }

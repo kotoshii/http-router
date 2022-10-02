@@ -25,6 +25,7 @@ class TestController {
     }
   ])
   async getInfo(req: Request) {
+    console.log(req.cookies)
     return req.body
   }
 }

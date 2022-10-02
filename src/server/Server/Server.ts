@@ -9,6 +9,7 @@ import { Request } from '../../types/Request'
 import { Response } from '../../types/Response'
 import { MiddlewareFunction } from '../../types/MiddlewareFunction'
 import { MetadataStorage } from '../../metadata/MetadataStorage/MetadataStorage'
+import cookie from 'cookie'
 
 export class Server implements IServer {
   private readonly _server: NodeServer
@@ -40,19 +41,8 @@ export class Server implements IServer {
 
       req.query = this.parseQueryParams(url.search)
 
-      const buffers = []
-      for await (const chunk of req) {
-        buffers.push(chunk)
-      }
-
-      const rawBody = Buffer.concat(buffers).toString()
-      req.rawBody = rawBody
-
-      try {
-        req.body = JSON.parse(rawBody)
-      } catch {
-        req.body = rawBody
-      }
+      await this.parseBody(req)
+      this.parseCookies(req)
 
       try {
         const [result, allMiddlewaresRun] = handler(req, res)
@@ -73,6 +63,31 @@ export class Server implements IServer {
 
   private parseQueryParams(searchParams: string) {
     return qs.parse(searchParams, { ignoreQueryPrefix: true })
+  }
+
+  private async parseBody(req: Request) {
+    const buffers = []
+    for await (const chunk of req) {
+      buffers.push(chunk)
+    }
+
+    const rawBody = Buffer.concat(buffers).toString()
+    req.rawBody = rawBody
+
+    try {
+      req.body = JSON.parse(rawBody)
+    } catch {
+      req.body = rawBody
+    }
+  }
+
+  private parseCookies(req: Request) {
+    if (!req.headers.cookie) {
+      req.cookies = {}
+      return
+    }
+
+    req.cookies = cookie.parse(req.headers.cookie)
   }
 
   public listen(port: number | string, callback?: CallbackVoid) {
