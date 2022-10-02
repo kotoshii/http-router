@@ -10,6 +10,7 @@ import { Response } from '../../types/Response'
 import { MiddlewareFunction } from '../../types/MiddlewareFunction'
 import { MetadataStorage } from '../../metadata/MetadataStorage/MetadataStorage'
 import cookie from 'cookie'
+import { stringifyObject } from '../../utils/stringifyObject'
 
 export class Server implements IServer {
   private readonly _server: NodeServer
@@ -25,6 +26,8 @@ export class Server implements IServer {
 
   private addListeners() {
     this._server.on('request', async (req: Request, res: Response) => {
+      this.addResponseMethods(res)
+
       // TODO: Find a way to check a protocol.
       //  Expressjs still uses IncomingMessage.connection.encrypted, though nodejs docs say it's deprecated
       //  also it doesn't exist in current types (req.connection.encrypted is undefined)
@@ -32,37 +35,35 @@ export class Server implements IServer {
       const handler = this._router.getHandler(url.pathname as string, req.method as HttpMethods)
 
       if (!handler) {
-        res.writeHead(404, { 'Content-Type': 'application/json' })
-        return res.end(JSON.stringify({
+        return res.json({
           status: 404,
           message: 'Route not found'
-        }))
+        }, 404)
       }
 
-      req.query = this.parseQueryParams(url.search)
-
-      await this.parseBody(req)
+      this.parseQueryParams(req, url.search)
       this.parseCookies(req)
+      await this.parseBody(req)
 
       try {
         const [result, allMiddlewaresRun] = handler(req, res)
 
         if (allMiddlewaresRun) {
           const awaitedResult = await result
-          return res.end(typeof awaitedResult === 'string' ? awaitedResult : JSON.stringify(awaitedResult))
+          // TODO add possibility to send binary and other non-string data
+          return res.end(stringifyObject(awaitedResult))
         }
       } catch (error) {
-        res.writeHead(500, { 'Content-Type': 'application/json' })
-        return res.end(JSON.stringify({
+        return res.json({
           status: 500,
           message: (error as Error).message
-        }))
+        }, 500)
       }
     })
   }
 
-  private parseQueryParams(searchParams: string) {
-    return qs.parse(searchParams, { ignoreQueryPrefix: true })
+  private parseQueryParams(req: Request, searchParams: string) {
+    req.query = qs.parse(searchParams, { ignoreQueryPrefix: true })
   }
 
   private async parseBody(req: Request) {
@@ -88,6 +89,46 @@ export class Server implements IServer {
     }
 
     req.cookies = cookie.parse(req.headers.cookie)
+  }
+
+  private addResponseMethods(res: Response) {
+    res.status = (statusCode) => {
+      res.statusCode = statusCode
+      return res
+    }
+
+    res.json = (data, statusCode) => {
+      res.setHeader('content-type', 'application/json')
+
+      if (statusCode) {
+        res.status(statusCode)
+      }
+
+      res.end(stringifyObject(data))
+      return res
+    }
+
+    res.html = (data, statusCode) => {
+      res.setHeader('content-type', 'text/html')
+
+      if (statusCode) {
+        res.status(statusCode)
+      }
+
+      res.end(data)
+      return res
+    }
+
+    res.text = (data, statusCode) => {
+      res.setHeader('content-type', 'text/plain')
+
+      if (statusCode) {
+        res.status(statusCode)
+      }
+
+      res.end(data)
+      return res
+    }
   }
 
   public listen(port: number | string, callback?: CallbackVoid) {
