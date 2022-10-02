@@ -1,7 +1,7 @@
 import { IAction } from './IAction'
 import { IController } from '../Controller/IController'
 import { IActionMetadata } from '../../metadata/IActionMetadata'
-import { HttpMethod } from '../../types/HttpMethod'
+import { HttpMethods } from '../../constants/httpMethods'
 import path from 'path/posix'
 import { formatRoute } from '../../utils/formatRoute'
 import { match, MatchFunction } from 'path-to-regexp'
@@ -18,7 +18,7 @@ export class Action implements IAction {
 
   target: Function
 
-  httpMethod: HttpMethod
+  httpMethod: HttpMethods
 
   methodName: string
 

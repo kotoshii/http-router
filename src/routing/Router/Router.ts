@@ -1,6 +1,6 @@
 import { IRouter } from './IRouter'
 import { Container, Service } from 'typedi'
-import { HttpMethod } from '../../types/HttpMethod'
+import { HttpMethods } from '../../constants/httpMethods'
 import { MetadataStorage } from '../../metadata/MetadataStorage/MetadataStorage'
 import { Controller } from '../Controller/Controller'
 import { flatten, groupBy } from 'lodash'
@@ -14,14 +14,14 @@ import { MiddlewareFunction } from '../../types/MiddlewareFunction'
 
 @Service()
 export class Router implements IRouter {
-  private _actionsMap = new Map<HttpMethod, IAction[]>()
+  private _actionsMap = new Map<HttpMethods, IAction[]>()
 
   constructor(
     private readonly _metadataStorage: MetadataStorage
   ) {}
 
-  getHandler(route: string, method: HttpMethod): RequestHandler | null {
-    const actions = this._actionsMap.get(method as HttpMethod)
+  getHandler(route: string, method: HttpMethods): RequestHandler | null {
+    const actions = this._actionsMap.get(method as HttpMethods)
 
     if (!actions) {
       return null
@@ -63,7 +63,7 @@ export class Router implements IRouter {
     const actionsByHttpMethod = groupBy(flatten(controllers.map((controller) => controller.actions)), 'httpMethod')
 
     for (const httpMethod in actionsByHttpMethod) {
-      this._actionsMap.set(httpMethod as HttpMethod, actionsByHttpMethod[httpMethod])
+      this._actionsMap.set(httpMethod as HttpMethods, actionsByHttpMethod[httpMethod])
     }
   }
 

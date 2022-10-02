@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
-import { Controller, Get, createServer } from '../src'
+import { Controller, Get, createServer, Post } from '../src'
+import { Request } from '../src/types/Request'
 
 @Controller('/', [
   (req, res, next) => {
@@ -13,7 +14,7 @@ class TestController {
     throw new Error('some error')
   }
 
-  @Get('/info', [
+  @Post('/info', [
     async (req, res, next) => {
       console.log('route middleware 1')
       next()
@@ -23,8 +24,8 @@ class TestController {
       next()
     }
   ])
-  async getInfo() {
-    return 'some info lololo'
+  async getInfo(req: Request) {
+    return req.body
   }
 }
 

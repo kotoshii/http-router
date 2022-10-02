@@ -3,7 +3,7 @@ import { IServer } from './IServer'
 import { Router } from '../../routing/Router/Router'
 import { CallbackVoid } from '../../types/CallbackVoid'
 import { Container } from 'typedi'
-import { HttpMethod } from '../../types/HttpMethod'
+import { HttpMethods } from '../../constants/httpMethods'
 import qs from 'qs'
 import { Request } from '../../types/Request'
 import { Response } from '../../types/Response'
@@ -27,8 +27,8 @@ export class Server implements IServer {
       // TODO: Find a way to check a protocol.
       //  Expressjs still uses IncomingMessage.connection.encrypted, though nodejs docs say it's deprecated
       //  also it doesn't exist in current types (req.connection.encrypted is undefined)
-      const url = new URL(`http://${req.headers.host}${req.url}`)
-      const handler = this._router.getHandler(url.pathname as string, req.method as HttpMethod)
+      const url = new URL(`https://${req.headers.host}${req.url}`)
+      const handler = this._router.getHandler(url.pathname as string, req.method as HttpMethods)
 
       if (!handler) {
         res.writeHead(404, { 'Content-Type': 'application/json' })
@@ -39,6 +39,20 @@ export class Server implements IServer {
       }
 
       req.query = this.parseQueryParams(url.search)
+
+      const buffers = []
+      for await (const chunk of req) {
+        buffers.push(chunk)
+      }
+
+      const rawBody = Buffer.concat(buffers).toString()
+      req.rawBody = rawBody
+
+      try {
+        req.body = JSON.parse(rawBody)
+      } catch {
+        req.body = rawBody
+      }
 
       try {
         const [result, allMiddlewaresRun] = handler(req, res)

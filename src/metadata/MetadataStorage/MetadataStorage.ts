@@ -1,7 +1,7 @@
 import { IMetadataStorage } from './IMetadataStorage'
 import { IControllerMetadata } from '../IControllerMetadata'
 import { IActionMetadata } from '../IActionMetadata'
-import { HttpMethod } from '../../types/HttpMethod'
+import { HttpMethods } from '../../constants/httpMethods'
 import { Service } from 'typedi'
 import { IMiddlewareMetadata } from '../IMiddlewareMetadata'
 import { MiddlewareFunction } from '../../types/MiddlewareFunction'
@@ -19,7 +19,7 @@ export class MetadataStorage implements IMetadataStorage {
     })
   }
 
-  addActionMetadata(route: string, httpMethod: HttpMethod, target: Object, methodName: string) {
+  addActionMetadata(route: string, httpMethod: HttpMethods, target: Object, methodName: string) {
     this.actionsMetadata.push({
       route,
       target,
