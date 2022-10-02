@@ -8,10 +8,10 @@
   "keywords": ["http", "routing", "express", "router", "backend", "framework"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/kotoshii/http-router.git"
+    "url": "https://github.com/kotoshii/nanoroutes.git"
   },
   "bugs": {
-    "url": "https://github.com/kotoshii/http-router/issues"
+    "url": "https://github.com/kotoshii/nanoroutes/issues"
   },
   "author": "kotoshii",
   "license": "GPL-3.0",
