@@ -7,6 +7,7 @@ export { MiddlewareFunction } from './types/MiddlewareFunction'
 export { Request } from './types/Request'
 export { Response } from './types/Response'
 export { HttpMethods } from './constants/httpMethods'
+export * from 'typedi'
 
 export function createServer() {
   return new Server()
